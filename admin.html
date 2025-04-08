@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Key</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Admin - Quản Lý Key</h2>
+        
+        <h3>Thêm Key</h3>
+        <form action="/admin/add-key" method="post">
+            <input type="text" name="new_key" placeholder="Nhập Key Mới" required>
+            <button type="submit">Thêm Key</button>
+        </form>
+
+        <h3>Xóa Key</h3>
+        <form action="/admin/delete-key" method="post">
+            <select name="key_to_delete">
+                {% for key in keys %}
+                <option value="{{ key }}">{{ key }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Xóa Key</button>
+        </form>
+        
+        <a href="/">Quay lại</a>
+    </div>
+</body>
+</html>
