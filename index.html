@@ -1,69 +1,202 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Nhập Tool</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tool Dự Đoán Tài/Xỉu</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    #game-frame {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      z-index: 0;
+    }
+
+    #tool-box {
+      position: fixed;
+      top: 40px;
+      left: 40px;
+      width: 280px;
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      z-index: 10;
+    }
+
+    #tool-box h3 {
+      margin-top: 0;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    input {
+      padding: 8px;
+      font-size: 14px;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 8px;
+      font-size: 14px;
+      border: none;
+      background: green;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #result, #historyBox {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Đăng Nhập Tool</h2>
-    
-    <form id="loginForm">
-        <input type="text" id="keyInput" placeholder="Nhập Key">
-        <button type="button" onclick="checkKey()">Đăng Nhập</button>
-        <p id="errorMessage" class="error" style="display:none;">Key không hợp lệ!</p>
-    </form>
+<iframe id="game-frame" src="https://68gb25vn.dev/?code=20319095"></iframe>
 
-    <div id="gameSection" style="display:none;">
-        <h3>Nhập Link Game</h3>
-        <input type="text" id="gameLink" placeholder="Nhập link game">
-        <button type="button" onclick="enterGame()">Xâm Nhập</button>
-    </div>
+<div id="tool-box">
+  <h3>🔧 Tool Dự Đoán</h3>
 
-    <div id="toolSection" style="display:none;">
-        <h3>Tool Dự Đoán</h3>
-        <iframe id="gameFrame"></iframe>
-    </div>
+  <div style="display: flex; gap: 6px;">
+    <input type="text" id="md5" placeholder="Nhập mã MD5" />
+    <button onclick="duDoan()">Dự Đoán</button>
+  </div>
+
+  <div style="display: flex; gap: 6px; margin-top: 8px;">
+    <input type="text" id="actual" placeholder="Kết quả T/X" disabled />
+    <button onclick="xacNhanKetQua()">Xác Nhận</button>
+  </div>
+
+  <div id="result"></div>
+  <div id="historyBox"></div>
 </div>
 
 <script>
-    function checkKey() {
-        const keyInput = document.getElementById("keyInput").value;
-        const errorMessage = document.getElementById("errorMessage");
-        const gameSection = document.getElementById("gameSection");
+  const KEY = "o8S;HJUkcfI17h[#tG1k^rajzd;D>[cGtw#Co";
+  let history = [];
+  let winCount = 0, loseCount = 0;
+  let lastHex = "", lastPrediction = "";
 
-        fetch("/check_key", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: "key=" + keyInput
-        })
-        .then(response => response.text())
-        .then(result => {
-            if (result === "success") {
-                errorMessage.style.display = "none";
-                gameSection.style.display = "block";
-            } else {
-                errorMessage.style.display = "block";
-            }
-        });
+  function md5_to_hex(md5_string) {
+    return CryptoJS.MD5(md5_string + KEY).toString();
+  }
+
+  function analyze_hex(hex) {
+    let total = 0;
+    for (let ch of hex) {
+      total += parseInt(ch, 16);
     }
 
-    function enterGame() {
-        const gameLink = document.getElementById("gameLink").value;
-        const toolSection = document.getElementById("toolSection");
-        const gameFrame = document.getElementById("gameFrame");
+    const sumLastBytes = [...Array(4)].map((_, i) =>
+      parseInt(hex.slice(hex.length - 8 + i * 2, hex.length - 6 + i * 2), 16)
+    ).reduce((a, b) => a + b, 0);
 
-        if (gameLink) {
-            toolSection.style.display = "block";
-            gameFrame.src = gameLink;
-        } else {
-            alert("Vui lòng nhập link game hợp lệ!");
-        }
+    let streak_bonus = 0;
+    if (history.length >= 2 && history[history.length - 1] === history[history.length - 2]) {
+      streak_bonus = history[history.length - 1] === "T" ? 8 : -8;
     }
+
+    let tai_percent = 50 + (((total % 18) - 9) * 2) + ((sumLastBytes % 10) - 5) + streak_bonus;
+    tai_percent = Math.max(30, Math.min(70, tai_percent));
+    const xiu_percent = 100 - tai_percent;
+    const prediction = tai_percent > xiu_percent ? "T" : "X";
+
+    return { tai_percent, xiu_percent, prediction };
+  }
+
+  function duDoan() {
+    const md5 = document.getElementById("md5").value.trim().toLowerCase();
+    if (!/^[0-9a-f]{32}$/.test(md5)) {
+      alert("Mã MD5 không hợp lệ!");
+      return;
+    }
+
+    lastHex = md5_to_hex(md5);
+    const { tai_percent, xiu_percent, prediction } = analyze_hex(lastHex);
+    lastPrediction = prediction;
+
+    document.getElementById("result").innerHTML = `
+      <p>🎯 Tỷ lệ Tài: <b>${tai_percent.toFixed(2)}%</b> | Xỉu: <b>${xiu_percent.toFixed(2)}%</b></p>
+      <p>💡 Dự đoán: <b style="color: ${prediction === 'T' ? 'red' : 'aqua'};">${prediction === 'T' ? 'Tài' : 'Xỉu'}</b></p>
+    `;
+    document.getElementById("actual").disabled = false;
+    document.getElementById("actual").focus();
+  }
+
+  function xacNhanKetQua() {
+    const actual = document.getElementById("actual").value.trim().toUpperCase();
+    if (!["T", "X"].includes(actual)) {
+      alert("Vui lòng nhập kết quả là 'T' hoặc 'X'");
+      return;
+    }
+    if (!lastPrediction) {
+      alert("Bạn cần dự đoán trước!");
+      return;
+    }
+
+    history.push(actual);
+    if (actual === lastPrediction) {
+      document.getElementById("result").innerHTML += `<p style="color:lime;">✅ Dự đoán đúng!</p>`;
+      winCount++;
+    } else {
+      document.getElementById("result").innerHTML += `<p style="color:orange;">❌ Sai rồi!</p>`;
+      loseCount++;
+    }
+
+    const total = winCount + loseCount;
+    const rate = ((winCount / total) * 100).toFixed(2);
+
+    document.getElementById("historyBox").innerHTML = `
+      <p>📊 Tổng: ${total} | ✅ Thắng: ${winCount} | ❌ Thua: ${loseCount} | 🎯 Tỷ lệ đúng: ${rate}%</p>
+    `;
+
+    // Reset
+    document.getElementById("md5").value = "";
+    document.getElementById("actual").value = "";
+    document.getElementById("actual").disabled = true;
+    lastPrediction = "";
+  }
+
+  // Cho phép kéo hộp tool
+  const box = document.getElementById("tool-box");
+  let isDragging = false, offsetX, offsetY;
+
+  box.addEventListener("mousedown", function (e) {
+    isDragging = true;
+    offsetX = e.clientX - box.offsetLeft;
+    offsetY = e.clientY - box.offsetTop;
+  });
+
+  document.addEventListener("mouseup", function () {
+    isDragging = false;
+  });
+
+  document.addEventListener("mousemove", function (e) {
+    if (isDragging) {
+      box.style.left = (e.clientX - offsetX) + "px";
+      box.style.top = (e.clientY - offsetY) + "px";
+    }
+  });
 </script>
+
+<!-- Thêm thư viện CryptoJS để hash MD5 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
 </body>
 </html>
