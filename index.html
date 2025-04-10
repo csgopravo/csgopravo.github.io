@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Tool Dự Đoán Tài/Xỉu</title>
   <style>
     html, body {
@@ -63,6 +63,39 @@
     #result, #historyBox {
       margin-top: 10px;
       font-size: 14px;
+    }
+
+    /* Responsive cho màn hình nhỏ */
+    @media (max-width: 600px) {
+      #tool-box {
+        width: 90vw;
+        left: 50%;
+        top: 20px;
+        transform: translateX(-50%);
+      }
+
+      #tool-box h3 {
+        font-size: 18px;
+      }
+
+      input, button {
+        font-size: 13px;
+        padding: 6px;
+      }
+
+      #result, #historyBox {
+        font-size: 13px;
+      }
+    }
+
+    /* Giữ layout khi màn hình xoay ngang */
+    @media screen and (orientation: landscape) {
+      #tool-box {
+        width: 280px;
+        top: 20px;
+        left: 20px;
+        transform: none;
+      }
     }
   </style>
 </head>
