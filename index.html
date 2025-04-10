@@ -23,6 +23,15 @@
       z-index: 0;
     }
 
+    @keyframes rgb-glow {
+      0%   { box-shadow: 0 0 12px red; }
+      20%  { box-shadow: 0 0 12px orange; }
+      40%  { box-shadow: 0 0 12px yellow; }
+      60%  { box-shadow: 0 0 12px green; }
+      80%  { box-shadow: 0 0 12px blue; }
+      100% { box-shadow: 0 0 12px violet; }
+    }
+
     #tool-box {
       position: fixed;
       top: 40px;
@@ -32,7 +41,7 @@
       color: #fff;
       padding: 15px;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      animation: rgb-glow 3s linear infinite;
       z-index: 10;
     }
 
