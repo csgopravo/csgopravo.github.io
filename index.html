@@ -23,15 +23,6 @@
       z-index: 0;
     }
 
-    @keyframes rgb-glow {
-      0%   { box-shadow: 0 0 12px red; }
-      20%  { box-shadow: 0 0 12px orange; }
-      40%  { box-shadow: 0 0 12px yellow; }
-      60%  { box-shadow: 0 0 12px green; }
-      80%  { box-shadow: 0 0 12px blue; }
-      100% { box-shadow: 0 0 12px violet; }
-    }
-
     #tool-box {
       position: fixed;
       top: 40px;
@@ -41,7 +32,7 @@
       color: #fff;
       padding: 15px;
       border-radius: 12px;
-      animation: rgb-glow 3s linear infinite;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       z-index: 10;
     }
 
@@ -74,6 +65,27 @@
       font-size: 14px;
     }
 
+    /* Chữ chạy trong tool-box */
+    #tool-marquee {
+      margin-top: 10px;
+      font-size: 13px;
+      color: yellow;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+      height: 20px;
+    }
+
+    #tool-marquee span {
+      position: absolute;
+      animation: scroll-left 10s linear infinite;
+    }
+
+    @keyframes scroll-left {
+      0%   { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+
     /* Responsive cho màn hình nhỏ */
     @media (max-width: 600px) {
       #tool-box {
@@ -94,6 +106,10 @@
 
       #result, #historyBox {
         font-size: 13px;
+      }
+
+      #tool-marquee {
+        font-size: 12px;
       }
     }
 
@@ -127,6 +143,8 @@
 
   <div id="result"></div>
   <div id="historyBox"></div>
+
+  <div id="tool-marquee"><span>✅Chào Mừng Đến Với Tool AE HTDD!</span></div>
 </div>
 
 <script>
