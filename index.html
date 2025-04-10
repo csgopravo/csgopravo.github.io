@@ -1,3 +1,4 @@
+<!-- File: index.html -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -47,10 +48,22 @@
       100% { box-shadow: 0 0 10px violet; }
     }
 
-    #tool-box h3 {
-      margin-top: 0;
+    .tool-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tool-header h3 {
+      margin: 0;
       font-size: 20px;
-      text-align: center;
+    }
+
+    .tool-header button {
+      font-size: 16px;
+      padding: 4px 10px;
+      background: #333;
+      color: white;
     }
 
     input {
@@ -73,7 +86,7 @@
       box-shadow: 0 0 2px #000;
       transition: transform 0.2s, box-shadow 0.2s;
     }
-    
+
     button:hover {
       transform: scale(1.03);
       box-shadow: 0 0 6px #0f0, 0 0 10px #0ff;
@@ -84,7 +97,6 @@
       font-size: 14px;
     }
 
-    /* Chữ chạy trong tool-box */
     #tool-marquee {
       margin-top: 10px;
       font-size: 13px;
@@ -105,7 +117,6 @@
       100% { transform: translateX(-100%); }
     }
 
-    /* Responsive */
     @media (max-width: 600px) {
       #tool-box {
         width: 90vw;
@@ -113,7 +124,7 @@
         top: 20px;
         transform: translateX(-50%);
       }
-      #tool-box h3 { font-size: 18px; }
+      .tool-header h3 { font-size: 18px; }
       input, button { font-size: 13px; padding: 6px; }
       #result, #historyBox { font-size: 13px; }
       #tool-marquee { font-size: 12px; }
@@ -125,37 +136,52 @@
 <iframe id="game-frame" src="https://68gbvn25.space/?code=14485667"></iframe>
 
 <div id="tool-box">
-  <h3>🧠 Tool Dự Đoán</h3>
-
-  <div style="display: flex; gap: 6px;">
-    <input type="text" id="md5" placeholder="Nhập mã MD5" />
-    <button onclick="duDoan()">Dự Đoán</button>
+  <div class="tool-header">
+    <h3>🧠 Tool Dự Đoán</h3>
+    <button id="toggleBtn">–</button>
   </div>
 
-  <div style="display: flex; gap: 6px; margin-top: 8px;">
-    <input type="text" id="actual" placeholder="Kết quả T/X" disabled />
-    <button onclick="xacNhanKetQua()">Xác Nhận</button>
-  </div>
+  <div class="tool-content">
+    <div style="display: flex; gap: 6px; margin-top: 10px;">
+      <input type="text" id="md5" placeholder="Nhập mã MD5" />
+      <button onclick="duDoan()">Dự Đoán</button>
+    </div>
 
-  <div id="result"></div>
-  <div id="historyBox"></div>
+    <div style="display: flex; gap: 6px; margin-top: 8px;">
+      <input type="text" id="actual" placeholder="Kết quả T/X" disabled />
+      <button onclick="xacNhanKetQua()">Xác Nhận</button>
+    </div>
+
+    <div id="result"></div>
+    <div id="historyBox"></div>
+    <button onclick="xoaLichSu()" style="margin-top:10px; background:#ff4444; color:white;">🗑️ Xóa Lịch Sử</button>
+  </div>
 
   <div id="tool-marquee"><span>🎉 Chào mừng đến với Tool Dự Đoán Tài/Xỉu - AE HTDD ✅</span></div>
 </div>
 
-<!-- Âm thanh đoán đúng -->
 <audio id="winSound" src="https://github.com/csgopravo/csgopravo.github.io/raw/refs/heads/main/WIN.mp3"></audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   const KEY = "o8S;HJUkcfI17h[#tG1k^rajzd;D>[cGtw#Co";
   let history = [];
   let winCount = 0, loseCount = 0;
   let lastHex = "", lastPrediction = "";
-
   const winSound = document.getElementById("winSound");
+
+  const saved = JSON.parse(localStorage.getItem("txHistory") || "{}");
+  if (saved.history) {
+    history = saved.history;
+    winCount = saved.winCount || 0;
+    loseCount = saved.loseCount || 0;
+    const total = winCount + loseCount;
+    const rate = ((winCount / total) * 100).toFixed(2);
+    document.getElementById("historyBox").innerHTML = `
+      <p>📊 Tổng: ${total} | ✅ Thắng: ${winCount} | ❌ Thua: ${loseCount} | 🎯 Tỷ lệ đúng: ${rate}%</p>
+    `;
+  }
 
   function md5_to_hex(md5_string) {
     return CryptoJS.MD5(md5_string + KEY).toString();
@@ -195,9 +221,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const { tai_percent, xiu_percent, prediction } = analyze_hex(lastHex);
     lastPrediction = prediction;
 
+    const now = new Date().toLocaleTimeString();
     document.getElementById("result").innerHTML = `
       <p>🎯 Tỷ lệ Tài: <b>${tai_percent.toFixed(2)}%</b> | Xỉu: <b>${xiu_percent.toFixed(2)}%</b></p>
       <p>💡 Dự đoán: <b style="color: ${prediction === 'T' ? 'red' : 'aqua'};">${prediction === 'T' ? 'Tài' : 'Xỉu'}</b></p>
+      <p style="color:gray;">🕒 ${now}</p>
     `;
     document.getElementById("actual").disabled = false;
     document.getElementById("actual").focus();
@@ -230,6 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("historyBox").innerHTML = `
       <p>📊 Tổng: ${total} | ✅ Thắng: ${winCount} | ❌ Thua: ${loseCount} | 🎯 Tỷ lệ đúng: ${rate}%</p>
     `;
+    localStorage.setItem("txHistory", JSON.stringify({ history, winCount, loseCount }));
 
     document.getElementById("md5").value = "";
     document.getElementById("actual").value = "";
@@ -237,7 +266,17 @@ document.addEventListener("DOMContentLoaded", function () {
     lastPrediction = "";
   }
 
-  // Cho phép kéo hộp tool
+  window.xoaLichSu = function () {
+    if (confirm("Bạn có chắc muốn xóa lịch sử?")) {
+      history = [];
+      winCount = 0;
+      loseCount = 0;
+      localStorage.removeItem("txHistory");
+      document.getElementById("historyBox").innerHTML = "";
+      document.getElementById("result").innerHTML = "";
+    }
+  }
+
   const box = document.getElementById("tool-box");
   let isDragging = false, offsetX, offsetY;
 
@@ -258,17 +297,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // 🔒 Chặn F12, Ctrl+U, Ctrl+Shift+I, chuột phải
+  // Nút thu gọn
+  document.getElementById("toggleBtn").addEventListener("click", () => {
+    const content = document.querySelector(".tool-content");
+    if (content.style.display === "none") {
+      content.style.display = "block";
+      toggleBtn.textContent = "–";
+    } else {
+      content.style.display = "none";
+      toggleBtn.textContent = "+";
+    }
+  });
+
+  // Chặn F12, chuột phải
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('keydown', e => {
-    if (e.key === 'F12' || 
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || 
+    if (e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && ['I', 'J'].includes(e.key)) ||
         (e.ctrlKey && e.key === 'U')) {
       e.preventDefault();
     }
   });
 });
 </script>
-
 </body>
 </html>
