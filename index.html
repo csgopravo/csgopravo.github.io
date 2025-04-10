@@ -62,13 +62,21 @@
     }
 
     button {
-      padding: 8px;
+      padding: 10px 16px;
       font-size: 14px;
+      font-weight: bold;
       border: none;
-      background: green;
-      color: white;
-      border-radius: 6px;
+      background: linear-gradient(to right, #00f0ff, #00ff40);
+      color: black;
+      border-radius: 12px;
       cursor: pointer;
+      box-shadow: 0 0 2px #000;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    button:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 6px #0f0, 0 0 10px #0ff;
     }
 
     #result, #historyBox {
