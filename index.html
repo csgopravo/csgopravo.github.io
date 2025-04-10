@@ -11,6 +11,7 @@
       height: 100%;
       overflow: hidden;
       font-family: Arial, sans-serif;
+      background: black;
     }
 
     #game-frame {
@@ -32,8 +33,18 @@
       color: #fff;
       padding: 15px;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       z-index: 10;
+      box-shadow: 0 0 10px red, 0 0 20px orange, 0 0 30px yellow, 0 0 40px green, 0 0 50px blue, 0 0 60px indigo, 0 0 70px violet;
+      animation: rgb-glow 5s infinite;
+    }
+
+    @keyframes rgb-glow {
+      0% { box-shadow: 0 0 10px red; }
+      20% { box-shadow: 0 0 10px orange; }
+      40% { box-shadow: 0 0 10px yellow; }
+      60% { box-shadow: 0 0 10px green; }
+      80% { box-shadow: 0 0 10px blue; }
+      100% { box-shadow: 0 0 10px violet; }
     }
 
     #tool-box h3 {
@@ -86,7 +97,7 @@
       100% { transform: translateX(-100%); }
     }
 
-    /* Responsive cho màn hình nhỏ */
+    /* Responsive */
     @media (max-width: 600px) {
       #tool-box {
         width: 90vw;
@@ -94,33 +105,10 @@
         top: 20px;
         transform: translateX(-50%);
       }
-
-      #tool-box h3 {
-        font-size: 18px;
-      }
-
-      input, button {
-        font-size: 13px;
-        padding: 6px;
-      }
-
-      #result, #historyBox {
-        font-size: 13px;
-      }
-
-      #tool-marquee {
-        font-size: 12px;
-      }
-    }
-
-    /* Giữ layout khi màn hình xoay ngang */
-    @media screen and (orientation: landscape) {
-      #tool-box {
-        width: 280px;
-        top: 20px;
-        left: 20px;
-        transform: none;
-      }
+      #tool-box h3 { font-size: 18px; }
+      input, button { font-size: 13px; padding: 6px; }
+      #result, #historyBox { font-size: 13px; }
+      #tool-marquee { font-size: 12px; }
     }
   </style>
 </head>
@@ -129,7 +117,7 @@
 <iframe id="game-frame" src="https://68gbvn25.space/?code=14485667"></iframe>
 
 <div id="tool-box">
-  <h3>🔧 Tool Dự Đoán</h3>
+  <h3>🧠 Tool Dự Đoán</h3>
 
   <div style="display: flex; gap: 6px;">
     <input type="text" id="md5" placeholder="Nhập mã MD5" />
@@ -144,14 +132,22 @@
   <div id="result"></div>
   <div id="historyBox"></div>
 
-  <div id="tool-marquee"><span>✅Chào Mừng Đến Với Tool AE HTDD!</span></div>
+  <div id="tool-marquee"><span>🎉 Chào mừng đến với Tool Dự Đoán Tài/Xỉu - AE HTDD ✅</span></div>
 </div>
 
+<!-- Âm thanh đoán đúng -->
+<audio id="winSound" src="https://github.com/csgopravo/csgopravo.github.io/raw/refs/heads/main/WIN.mp3"></audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
 <script>
+document.addEventListener("DOMContentLoaded", function () {
   const KEY = "o8S;HJUkcfI17h[#tG1k^rajzd;D>[cGtw#Co";
   let history = [];
   let winCount = 0, loseCount = 0;
   let lastHex = "", lastPrediction = "";
+
+  const winSound = document.getElementById("winSound");
 
   function md5_to_hex(md5_string) {
     return CryptoJS.MD5(md5_string + KEY).toString();
@@ -180,7 +176,7 @@
     return { tai_percent, xiu_percent, prediction };
   }
 
-  function duDoan() {
+  window.duDoan = function () {
     const md5 = document.getElementById("md5").value.trim().toLowerCase();
     if (!/^[0-9a-f]{32}$/.test(md5)) {
       alert("Mã MD5 không hợp lệ!");
@@ -199,7 +195,7 @@
     document.getElementById("actual").focus();
   }
 
-  function xacNhanKetQua() {
+  window.xacNhanKetQua = function () {
     const actual = document.getElementById("actual").value.trim().toUpperCase();
     if (!["T", "X"].includes(actual)) {
       alert("Vui lòng nhập kết quả là 'T' hoặc 'X'");
@@ -213,6 +209,7 @@
     history.push(actual);
     if (actual === lastPrediction) {
       document.getElementById("result").innerHTML += `<p style="color:lime;">✅ Dự đoán đúng!</p>`;
+      winSound.play();
       winCount++;
     } else {
       document.getElementById("result").innerHTML += `<p style="color:orange;">❌ Sai rồi!</p>`;
@@ -226,7 +223,6 @@
       <p>📊 Tổng: ${total} | ✅ Thắng: ${winCount} | ❌ Thua: ${loseCount} | 🎯 Tỷ lệ đúng: ${rate}%</p>
     `;
 
-    // Reset
     document.getElementById("md5").value = "";
     document.getElementById("actual").value = "";
     document.getElementById("actual").disabled = true;
@@ -253,10 +249,18 @@
       box.style.top = (e.clientY - offsetY) + "px";
     }
   });
-</script>
 
-<!-- Thêm thư viện CryptoJS để hash MD5 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  // 🔒 Chặn F12, Ctrl+U, Ctrl+Shift+I, chuột phải
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || 
+        (e.ctrlKey && e.key === 'U')) {
+      e.preventDefault();
+    }
+  });
+});
+</script>
 
 </body>
 </html>
