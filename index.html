@@ -202,7 +202,11 @@
 
     <div id="result"></div>
     <div id="historyBox"></div>
-    <button onclick="xoaLichSu()" style="margin-top:10px; background:#ff4444; color:white;">🗑️ Xóa Lịch Sử</button>
+    <div style="display: flex; gap: 6px; margin-top: 10px;">
+      <button onclick="xoaLichSu()" style="margin-top:10px; background:#ff4444; color:white;">🗑️ Xóa Lịch Sử</button>
+    <button onclick="toggleMusic()" style="margin-top:10px; background:#4444ff; color:white;" id="musicBtn">▶️ Bật Nhạc</button>
+    </div>
+    
   </div>
 
   <div id="tool-marquee"><span>✅ Tool Bản Quyền Bời AE HTDD ✅</span></div>
@@ -365,6 +369,41 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+let isPlaying = false;
+function toggleMusic() {
+  const musicBtn = document.getElementById("musicBtn");
+  const iframe = document.getElementById("musicPlayer");
+
+  if (!iframe) {
+    alert("Không tìm thấy player!");
+    return;
+  }
+
+  const src = "https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/b-i-ti-n-d-ng-376138919/vietmix-vol-1-vet-xuoc-24h-remix-nst-xung-cang-tuoi-lunatic-nst-nonstop-vietmix";
+
+  if (!isPlaying) {
+    iframe.src = src + "&auto_play=true";
+    isPlaying = true;
+    musicBtn.textContent = "⏸️ Dừng Nhạc";
+  } else {
+    iframe.src = src + "&auto_play=false";
+    isPlaying = false;
+    musicBtn.textContent = "▶️ Bật Nhạc";
+  }
+}
+
 </script>
+
+<iframe 
+  id="musicPlayer"
+  width="0" 
+  height="0" 
+  allow="autoplay" 
+  style="display: none;" 
+  src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/b-i-ti-n-d-ng-376138919/vietmix-vol-1-vet-xuoc-24h-remix-nst-xung-cang-tuoi-lunatic-nst-nonstop-vietmix&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&visual=false">
+</iframe>
+
+
 </body>
 </html>
